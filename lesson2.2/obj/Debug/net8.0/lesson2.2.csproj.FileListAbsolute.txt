@@ -1,0 +1,14 @@
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\bin\Debug\net8.0\lesson2.2.exe
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\bin\Debug\net8.0\lesson2.2.deps.json
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\bin\Debug\net8.0\lesson2.2.runtimeconfig.json
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\bin\Debug\net8.0\lesson2.2.dll
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\bin\Debug\net8.0\lesson2.2.pdb
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\obj\Debug\net8.0\lesson2.2.GeneratedMSBuildEditorConfig.editorconfig
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\obj\Debug\net8.0\lesson2.2.AssemblyInfoInputs.cache
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\obj\Debug\net8.0\lesson2.2.AssemblyInfo.cs
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\obj\Debug\net8.0\lesson2.2.csproj.CoreCompileInputs.cache
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\obj\Debug\net8.0\lesson2.2.dll
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\obj\Debug\net8.0\refint\lesson2.2.dll
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\obj\Debug\net8.0\lesson2.2.pdb
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\obj\Debug\net8.0\lesson2.2.genruntimeconfig.cache
+\\gymspit.cz\data$\matyas.nechvatal\Desktop\programovani seminar\lesson2.2\obj\Debug\net8.0\ref\lesson2.2.dll
