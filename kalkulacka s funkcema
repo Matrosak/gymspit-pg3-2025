@@ -1,0 +1,98 @@
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Console.WriteLine("=== Jednoduchá kalkulačka ===");
+
+        while (true)
+        {
+            PrintMenu();
+            char operation = ReadOperation();
+
+            if (operation == 'q')
+            {
+                Console.WriteLine("Konec programu.");
+                break;
+            }
+
+            double a = ReadDouble();
+            double b = ReadDouble(operation == '/' || operation == '%'); // musí být nenulové u / a %
+
+            double result = Compute(operation, a, b);
+            PrintResult(operation, a, b, result);
+
+            Console.WriteLine();
+        }
+    }
+
+    static void PrintMenu()
+    {
+        Console.WriteLine("\nVyber operaci:");
+        Console.WriteLine("  +  ... sčítání");
+        Console.WriteLine("  -  ... odčítání");
+        Console.WriteLine("  *  ... násobení");
+        Console.WriteLine("  /  ... dělení");
+        Console.WriteLine("  %  ... zbytek po dělení");
+        Console.WriteLine("  q  ... konec");
+    }
+
+    static char ReadOperation()
+    {
+        while (true)
+        {
+            Console.Write("Zadej operaci: ");
+            string input = Console.ReadLine().Trim();
+
+            if (input.Length == 1)
+            {
+                char op = input[0];
+                if ("+-*/%q".Contains(op))
+                    return op;
+            }
+
+            Console.WriteLine("Neplatná operace. Zkus to znovu.");
+        }
+    }
+
+    static double ReadDouble(bool nonZero = false)
+    {
+        while (true)
+        {
+            Console.Write("Zadej číslo: ");
+            string input = Console.ReadLine();
+
+            if (double.TryParse(input, out double value))
+            {
+                if (nonZero && value == 0)
+                {
+                    Console.WriteLine("Číslo nesmí být nulové. Zkus to znovu.");
+                    continue;
+                }
+                return value;
+            }
+            Console.WriteLine("Neplatný vstup. Zadej číslo znovu.");
+        }
+    }
+
+    static double Compute(char operation, double operand1, double operand2)
+    {
+        switch (operation)
+        {
+            case '+': return operand1 + operand2;
+            case '-': return operand1 - operand2;
+            case '*': return operand1 * operand2;
+            case '/': return operand1 / operand2;
+            case '%': return operand1 % operand2;
+            default:
+                Console.WriteLine("Neznámá operace.");
+                return double.NaN;
+        }
+    }
+
+    static void PrintResult(char operation, double operand1, double operand2, double result)
+    {
+        Console.WriteLine($"{operand1} {operation} {operand2} = {result}");
+    }
+}
