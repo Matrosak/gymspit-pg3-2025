@@ -1,0 +1,225 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+class Item
+{
+    public int Amount;
+    public string Name;
+    public string Category;
+}
+
+class Program
+{
+    const string FILE_NAME = "data.txt";
+    const int MAX_ITEMS = 100;
+
+    static List<Item> items = new List<Item>();
+
+    static void Main()
+    {
+        LoadFromFile();
+
+        while (true)
+        {
+            Console.WriteLine("\n--- WALLET ---");
+            Console.WriteLine("1 - List items");
+            Console.WriteLine("2 - Add item");
+            Console.WriteLine("3 - Edit item");
+            Console.WriteLine("4 - Delete item");
+            Console.WriteLine("5 - Filtered list");
+            Console.WriteLine("6 - Sorting");
+            Console.WriteLine("0 - Exit");
+
+            Console.Write("Choice: ");
+            string choice = Console.ReadLine();
+
+            switch (choice)
+            {
+                case "1": Print(null); break;
+                case "2": Add(); break;
+                case "3": Edit(); break;
+                case "4": Delete(); break;
+                case "5": Filter(); break;
+                case "6": SortItems(); break;
+                case "0":
+                    SaveToFile();
+                    return;
+                default:
+                    Console.WriteLine("Invalid choice");
+                    break;
+            }
+        }
+    }
+
+    static void LoadFromFile()
+    {
+        if (!File.Exists(FILE_NAME)) return;
+
+        foreach (string line in File.ReadAllLines(FILE_NAME))
+        {
+            string[] parts = line.Split(';');
+            if (parts.Length == 3 && int.TryParse(parts[0], out int amount))
+            {
+                items.Add(new Item
+                {
+                    Amount = amount,
+                    Name = parts[1],
+                    Category = parts[2]
+                });
+            }
+        }
+    }
+
+    static void SaveToFile()
+    {
+        using StreamWriter sw = new StreamWriter(FILE_NAME);
+        foreach (var item in items)
+            sw.WriteLine($"{item.Amount};{item.Name};{item.Category}");
+    }
+
+    static void Print(string filter)
+    {
+        Console.WriteLine("\nIdx | Amount | Name                 | Category");
+        Console.WriteLine("----+--------+----------------------+----------");
+
+        int incomeSum = 0, expenseSum = 0;
+        int incomeCount = 0, expenseCount = 0;
+
+        int incomeMin = int.MaxValue, incomeMax = int.MinValue;
+        int expenseMin = int.MaxValue, expenseMax = int.MinValue;
+
+        Dictionary<string, int> categoryTotals = new Dictionary<string, int>();
+
+        for (int i = 0; i < items.Count; i++)
+        {
+            var item = items[i];
+
+            if (item.Amount >= 0)
+            {
+                incomeSum += item.Amount;
+                incomeCount++;
+                incomeMin = Math.Min(incomeMin, item.Amount);
+                incomeMax = Math.Max(incomeMax, item.Amount);
+            }
+            else
+            {
+                expenseSum += item.Amount;
+                expenseCount++;
+                expenseMin = Math.Min(expenseMin, item.Amount);
+                expenseMax = Math.Max(expenseMax, item.Amount);
+            }
+
+            if (!categoryTotals.ContainsKey(item.Category))
+                categoryTotals[item.Category] = 0;
+            categoryTotals[item.Category] += item.Amount;
+
+            if (filter == null || item.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine(
+                    "{0,3} | {1,6} | {2,-20} | {3,-10}",
+                    i, item.Amount, item.Name, item.Category);
+            }
+        }
+
+        Console.WriteLine("\n--- STATISTICS ---");
+        if (incomeCount > 0)
+            Console.WriteLine($"Income: {incomeCount}, sum {incomeSum}, min {incomeMin}, max {incomeMax}");
+        else
+            Console.WriteLine("Income: none");
+
+        if (expenseCount > 0)
+            Console.WriteLine($"Expenses: {expenseCount}, sum {expenseSum}, min {expenseMin}, max {expenseMax}");
+        else
+            Console.WriteLine("Expenses: none");
+
+        Console.WriteLine("\n--- BY CATEGORY ---");
+        foreach (var c in categoryTotals)
+            Console.WriteLine($"{c.Key,-10}: {c.Value}");
+    }
+
+    static void Add()
+    {
+        if (items.Count >= MAX_ITEMS)
+        {
+            Console.WriteLine("List is full");
+            return;
+        }
+
+        int amount = ReadInt("Amount: ");
+        Console.Write("Name: ");
+        string name = Console.ReadLine();
+        Console.Write("Category: ");
+        string category = Console.ReadLine();
+
+        items.Add(new Item { Amount = amount, Name = name, Category = category });
+    }
+
+    static void Edit()
+    {
+        int index = ReadIndex();
+        items[index].Amount = ReadInt("New amount: ");
+        Console.Write("New name: ");
+        items[index].Name = Console.ReadLine();
+        Console.Write("New category: ");
+        items[index].Category = Console.ReadLine();
+    }
+
+    static void Delete()
+    {
+        int index = ReadIndex();
+        items.RemoveAt(index);
+    }
+
+    static void Filter()
+    {
+        Console.Write("Enter search text: ");
+        string filter = Console.ReadLine();
+        Print(filter);
+    }
+
+    static void SortItems()
+    {
+        Item[] copy = items.ToArray();
+        Console.WriteLine("Sort by: 1-amount, 2-name");
+        string choice = Console.ReadLine();
+
+        if (choice == "1")
+            Array.Sort(copy, (a, b) => a.Amount.CompareTo(b.Amount));
+        else
+            Array.Sort(copy, (a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+
+        Console.Write("Descending? (y/n): ");
+        if (Console.ReadLine().ToLower() == "y")
+            Array.Reverse(copy);
+
+        Console.WriteLine("\n--- SORTED LIST ---");
+        for (int i = 0; i < copy.Length; i++)
+        {
+            Console.WriteLine("{0,3} | {1,6} | {2,-20} | {3,-10}",
+                i, copy[i].Amount, copy[i].Name, copy[i].Category);
+        }
+    }
+
+    static int ReadInt(string text)
+    {
+        while (true)
+        {
+            Console.Write(text);
+            if (int.TryParse(Console.ReadLine(), out int value))
+                return value;
+            Console.WriteLine("Enter a valid integer.");
+        }
+    }
+
+    static int ReadIndex()
+    {
+        while (true)
+        {
+            int index = ReadInt("Row index: ");
+            if (index >= 0 && index < items.Count)
+                return index;
+            Console.WriteLine("Index out of range.");
+        }
+    }
+}
