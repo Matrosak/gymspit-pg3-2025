@@ -1,0 +1,105 @@
+{
+  "theme": {
+    "archetype": "1 (Organic & Earthy)",
+    "mode": "light",
+    "vibe": "Authentic Czech pub culture, editorial directory, premium beer magazine"
+  },
+  "colors": {
+    "primary": "#B45309",
+    "primary_hover": "#92400E",
+    "secondary": "#15803D",
+    "background": "#FAF9F6",
+    "surface": "#F3F0EA",
+    "surface_glass": "bg-white/70 backdrop-blur-xl border-white/40",
+    "border": "#E7E5E4",
+    "text_primary": "#1C1917",
+    "text_secondary": "#57534E",
+    "accent_gold": "#FDE68A",
+    "forbidden_colors": [
+      "#9D4CDD",
+      "#1B93A4",
+      "generic purple-blue gradients"
+    ]
+  },
+  "typography": {
+    "heading_font": "Cormorant Garamond, serif",
+    "body_font": "Manrope, sans-serif",
+    "rules": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl tracking-tighter font-serif text-stone-900",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl tracking-tight font-serif text-stone-900",
+      "h3": "text-xl sm:text-2xl font-serif text-stone-900",
+      "body": "text-base leading-relaxed font-sans text-stone-700",
+      "overline": "uppercase text-xs tracking-[0.2em] font-sans text-amber-700"
+    }
+  },
+  "layout_and_spacing": {
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "grid_bento": "grid grid-cols-1 md:grid-cols-8 lg:grid-cols-12 gap-8",
+    "spacing_philosophy": "Generous spacing. Use p-6, p-8, p-12. Avoid cramped containers."
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-amber-700 hover:bg-amber-800 text-white font-sans px-6 py-3 rounded-none border border-amber-900 transition-colors",
+      "secondary": "bg-transparent border border-stone-300 hover:border-amber-700 text-stone-900 hover:text-amber-800 px-6 py-3 rounded-none transition-colors"
+    },
+    "cards": {
+      "pub_card": "bg-[#F3F0EA] border border-stone-200/60 p-6 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 flex flex-col gap-4"
+    },
+    "inputs": {
+      "style": "bg-transparent border-b-2 border-stone-300 hover:border-amber-700 focus:border-amber-700 focus:ring-0 rounded-none px-0 py-2 text-stone-900 font-sans transition-colors"
+    },
+    "badges": {
+      "beer_tag": "bg-amber-100/50 text-amber-900 text-xs px-2 py-1 rounded-sm uppercase tracking-wider font-semibold border border-amber-200/50"
+    }
+  },
+  "features_spec": {
+    "directory_list": "Use a masonry or responsive grid (1 col mobile, 2 tablet, 3 desktop). Filter sidebar on left, pub list on right for desktop.",
+    "random_picker": "Big, bold feature section. A 'Kam dnes na pivo?' button that runs a quick slot-machine animation through pub names before stopping on one.",
+    "pub_crawl_planner": "Interactive timeline or connected dots layout where users can add pubs to build a route.",
+    "promoted_pubs": "Marquee or a special featured section at the top of the directory with a 'Tracing Beam' or subtle gold border."
+  },
+  "imagery": {
+    "rules": "Use the provided hop leaf images for hero section backgrounds (with white/20 overlay or gradient overlay) or section dividers.",
+    "urls": [
+      {
+        "url": "https://images.unsplash.com/photo-1609315775378-fc9679b1786a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwyfHxob3AlMjBsZWF2ZXN8ZW58MHx8fHwxNzgwODI2MzY4fDA&ixlib=rb-4.1.0&q=85",
+        "description": "green leaves in macro lens",
+        "category": "hero_background"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1604040605063-8323c2b450cf?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwxfHxob3AlMjBsZWF2ZXN8ZW58MHx8fHwxNzgwODI2MzY4fDA&ixlib=rb-4.1.0&q=85",
+        "description": "green leaves on wooden surface",
+        "category": "section_divider"
+      },
+      {
+        "url": "https://images.pexels.com/photos/32606571/pexels-photo-32606571.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Detailed close-up of fresh green hop flowers with raindrops",
+        "category": "featured_pub_background"
+      },
+      {
+        "url": "https://images.pexels.com/photos/37250175/pexels-photo-37250175.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "hop cones on a vine",
+        "category": "footer_background"
+      }
+    ]
+  },
+  "animations": {
+    "hover": "Slight lift (-translate-y-1) and shadow increase.",
+    "list_entrance": "Staggered fade-in-up for pub cards using Framer Motion.",
+    "marquee": "Slow, smooth drift for districts or top beer brands (react-fast-marquee)."
+  },
+  "accessibility": {
+    "contrast": "Ensure all text over images uses proper overlays (e.g., bg-black/40 or bg-white/60).",
+    "focus": "Use focus:ring-2 focus:ring-amber-500 focus:outline-none.",
+    "testing": "All interactive elements MUST have data-testid."
+  },
+  "instructions_to_main_agent": [
+    "Build a modern editorial-style directory for Prague pubs.",
+    "Use pure HTML/Tailwind for structural layouts, and customize Shadcn components for interactivity (filters, dropdowns, forms).",
+    "Include font imports for Cormorant Garamond and Manrope in the main CSS or index.html.",
+    "Implement the 'Kam dnes na pivo?' random picker with a slight motion delay for excitement.",
+    "Ensure 'data-testid' is present on all buttons, links, and form elements.",
+    "Use the provided hop leaf images creatively as backgrounds (with appropriate opacity/blend modes) to establish the beer culture vibe without needing actual beer photos.",
+    "Use .js extension for React components (as requested: 'You have .js files not .tsx file, so share the guideline for .js files not for .tsx files')"
+  ]
+}
