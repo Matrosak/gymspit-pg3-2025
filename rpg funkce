@@ -1,0 +1,188 @@
+using System;
+
+namespace RPGZapas
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine("=== VÍTEJTE V ARÉNĚ PROTI CHYTRÉMU MONSTRU ===");
+            
+            Bojovnik hrac = new Bojovnik("Hrdina", zivoty: 100, utok: 15, armor: 5);
+            Monstrum nepřitel = new Monstrum("Temný skřet", zivoty: 120, utok: 18, armor: 3);
+
+            hrac.Reset();
+            nepřitel.Reset();
+
+            int kolo = 1;
+            while (hrac.JeZivy && nepřitel.JeZivy)
+            {
+                Console.WriteLine($"\n--- KOLO {kolo} ---");
+                Console.WriteLine($"{hrac.Jmeno}: {hrac.Zivoty} HP | Brnění: {hrac.Armor} (+{hrac.ArmorBonus} bonus)");
+                Console.WriteLine($"{nepřitel.Jmeno}: {nepřitel.Zivoty} HP | Brnění: {nepřitel.Armor} (+{nepřitel.ArmorBonus} bonus)");
+                Console.WriteLine("----------------");
+
+                // --- TAH HRÁČE ---
+                Console.WriteLine("Vyber akci: [1] Útok | [2] Obrana (Zvýší armor bonus)");
+                string volba = Console.ReadLine();
+
+                if (volba == "2")
+                {
+                    hrac.Obrana();
+                }
+                else
+                {
+                    // Výchozí je útok, pokud hráč zadá cokoliv jiného
+                    hrac.Utok Na(nepřitel);
+                }
+
+                if (!nepřitel.JeZivy) break;
+
+                // --- TAH NEPŘÍTELE (CHYTRÁ AI) ---
+                Console.WriteLine($"\n[Tah nepřítele]:");
+                nepřitel.RozhodniATykni(hrac);
+
+                kolo++;
+                Console.WriteLine("\nStiskněte Enter pro další kolo...");
+                Console.ReadLine();
+            }
+
+            Console.WriteLine("\n=== KONEC ZÁPASU ===");
+            if (hrac.JeZivy)
+                Console.WriteLine($"🎉 Vítězství! {hrac.Jmeno} porazil {nepřitel.Jmeno}!");
+            else
+                Console.WriteLine($"💀 Porážka! {nepřitel.Jmeno} tě roztrhal na kusy.");
+
+            Console.ReadLine();
+        }
+    }
+
+    // --- ZÁKLADNÍ TŘÍDA PRO POSTAVY ---
+    public class Postava
+    {
+        public string Jmeno { get; protected set; }
+        public int Zivoty { get; protected set; }
+        public int MaxZivoty { get; protected set; }
+        public int ZakladniUtok { get; protected set; }
+        public int Armor { get; protected set; }
+        
+        // 1. BOD: Nová vlastnost ArmorBonus
+        public int ArmorBonus { get; protected set; }
+
+        public bool JeZivy => Zivoty > 0;
+
+        public Postava(string jmeno, int zivoty, int utok, int armor)
+        {
+            Jmeno = jmeno;
+            MaxZivoty = zivoty;
+            Zivoty = zivoty;
+            ZakladniUtok = utok;
+            Armor = armor;
+        }
+
+        // 1. BOD: Reset nastavuje ArmorBonus na 0
+        public virtual void Reset()
+        {
+            Zivoty = MaxZivoty;
+            ArmorBonus = 0;
+        }
+
+        // 1. BOD: Akce Obrana (Defense) zvyšuje ArmorBonus
+        public void Obrana()
+        {
+            int zvyseni = 6;
+            ArmorBonus += zvyseni;
+            Console.WriteLine($"🛡️ {Jmeno} se opevnil! Zvýšil svůj armorBonus o +{zvyseni} (Celkový bonus: {ArmorBonus}).");
+        }
+
+        // 1. BOD: Útok, při kterém se snižuje armorBonus
+        public virtual void UtokNa(Postava obet)
+        {
+            Console.WriteLine($"⚔️ {Jmeno} vyráží do útoku!");
+            obet.PrijmiPoskozeni(ZakladniUtok);
+
+            // Při útoku se armorBonus sníží (pokud nějaký je, neklesne pod 0)
+            if (ArmorBonus > 0)
+            {
+                int ztrata = 3;
+                ArmorBonus = Math.Max(0, ArmorBonus - ztrata);
+                Console.WriteLine($"💨 Útokem se {Jmeno} odkryl. Jeho armorBonus klesl o {ztrata} (Nyní: {ArmorBonus}).");
+            }
+        }
+
+        public void PrijmiPoskozeni(int silatUtoku)
+        {
+            // Výpočet celkové obrany: základní Armor + dočasný ArmorBonus
+            int celkovaObrana = Armor + ArmorBonus;
+            int finalniPoskozeni = silatUtoku - celkovaObrana;
+
+            if (finalniPoskozeni < 1) finalniPoskozeni = 1; // Vždy udělí aspoň 1 poškození
+
+            Zivoty = Math.Max(0, Zivoty - finalniPoskozeni);
+            Console.WriteLine($"💥 {Jmeno} inkasoval {finalniPoskozeni} poškození (Obrázil {celkovaObrana} bodů brněním).");
+        }
+    }
+
+    // --- TŘÍDA PRO HRÁČE ---
+    public class Bojovnik : Postava
+    {
+        public Bojovnik(string jmeno, int zivoty, int utok, int armor) 
+            : base(jmeno, zivoty, utok, armor) { }
+    }
+
+    // --- TŘÍDA PRO MONSTRU S CHYTROU AI ---
+    public class Monstrum : Postava
+    {
+        private Random rand = new Random();
+
+        public Monstrum(string jmeno, int zivoty, int utok, int armor) 
+            : base(jmeno, zivoty, utok, armor) { }
+
+        // 2. BOD: Zajímavější umělá inteligence nepřítele
+        public void RozhodniATykni(Postava hrac)
+        {
+            double procentoZivotu = (double)Zivoty / MaxZivoty;
+
+            // KRYTICKÁ SITUACE: Monstru teče do bot (má pod 35% HP) a nemá dostatečný armor bonus
+            if (procentoZivotu < 0.35 && ArmorBonus < 5)
+            {
+                Console.WriteLine($"🤖 AI: {Jmeno} panikaří a vidí nízké životy.");
+                Obrana(); // Zvolí obranu, aby přežilo
+                return;
+            }
+
+            // STRATEGICKÁ SITUACE: Hráč má hrozně vysoký armor bonus, běžný útok by neprošel
+            if (hrac.Armor + hrac.ArmorBonus >= ZakladniUtok)
+            {
+                Console.WriteLine($"🤖 AI: {Jmeno} vidí, že hráč má příliš silný štít. Opevňuje se také a čeká na příležitost.");
+                Obrana();
+                return;
+            }
+
+            // AGRESIVNÍ SITUACE: Monstrum je relativně zdravé, nebo má vysoký vlastní armor bonus -> divoký útok
+            if (procentoZivotu > 0.7 || ArmorBonus >= 6)
+            {
+                Console.WriteLine($"🤖 AI: {Jmeno} se cítí silný a provádí Zuřivý Útok!");
+                // Udělá silnější útok, ale zcela se tím odhalí (vynuluje armor bonus)
+                int bonusovyUtok = 5;
+                hrac.PrijmiPoskozeni(ZakladniUtok + bonusovyUtok);
+                
+                ArmorBonus = 0; 
+                Console.WriteLine($"💨 Divokým výpadem {Jmeno} zcela ztratil svůj armorBonus!");
+                return;
+            }
+
+            // VÝCHOZÍ SITUACE: Klasické chování (náhodný výběr s převahou útoku)
+            if (rand.Next(0, 10) < 3)
+            {
+                Console.WriteLine($"🤖 AI: {Jmeno} se rozhodlo takticky stáhnout do obrany.");
+                Obrana();
+            }
+            else
+            {
+                Console.WriteLine($"🤖 AI: {Jmeno} provádí standardní útok.");
+                UtokNa(hrac);
+            }
+        }
+    }
+}
