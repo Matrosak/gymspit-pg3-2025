@@ -1,0 +1,384 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Drawing;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+
+namespace VelkyPivniPruvodcePrahou
+{
+    public partial class MainForm : Form
+    {
+        private List<Hospoda> databaze = new List<Hospoda>();
+        private Dictionary<int, List<int>> ratingy = new Dictionary<int, List<int>>();
+        private string ratingFile = "pivni_pruvodce_ratingy.txt";
+
+        // UI Prvky
+        private DataGridView grid;
+        private TextBox txtHledat;
+        private NumericUpDown numRating;
+        private Label lblStatus;
+
+        public MainForm()
+        {
+            this.Text = "Otestovaný Průvodce Pražskými Čtvrtěmi (Filtrování OPRAVENO)";
+            this.Size = new Size(1100, 750);
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            InicializovatObriDatabazi();
+            NacistUlozeneRatingy();
+            InicializovatUzivatelskeRozhrani();
+        }
+
+        private void InicializovatObriDatabazi()
+        {
+            databaze = new List<Hospoda>
+            {
+                // === PRAHA 1 (CENTRUM) - 20 HOSPOD ===
+                new Hospoda { Id = 1, Nazev = "U Zlatého tygra", Ctvrt = "Praha 1", Pivo = "Pilsner Urquell z tanku" },
+                new Hospoda { Id = 2, Nazev = "U Hrocha", Ctvrt = "Praha 1", Pivo = "Pilsner Urquell, Kozel Černý" },
+                new Hospoda { Id = 3, Nazev = "Lokál Dlouhááá", Ctvrt = "Praha 1", Pivo = "Pilsner Urquell (Hladinka, Šnyt, Mlíko), Kozel Tmavý" },
+                new Hospoda { Id = 4, Nazev = "U Fleků", Ctvrt = "Praha 1", Pivo = "Flekovský tmavý ležák 13° (vlastní)" },
+                new Hospoda { Id = 5, Nazev = "U Pinkasů", Ctvrt = "Praha 1", Pivo = "Pilsner Urquell hladinka, Master 13° Tmavý" },
+                new Hospoda { Id = 6, Nazev = "Klášterní pivovar Strahov", Ctvrt = "Praha 1", Pivo = "Sv. Norbert Amber Lager, Sv. Norbert Dark, Sv. Norbert IPA" },
+                new Hospoda { Id = 7, Nazev = "U Černého vola", Ctvrt = "Praha 1", Pivo = "Kozel 10° Světlý, Kozel Tmavý, Pilsner Urquell" },
+                new Hospoda { Id = 8, Nazev = "U Tří růží", Ctvrt = "Praha 1", Pivo = "Světlý speciál 12°, Tmavý ležák, Klášterní speciál 15°" },
+                new Hospoda { Id = 9, Nazev = "Pivovarský dům Benedict", Ctvrt = "Praha 1", Pivo = "Štěpán 12° Světlý, Pšeničné pivo, Kávové pivo, Višňové pivo" },
+                new Hospoda { Id = 10, Nazev = "U Dvou koček", Ctvrt = "Praha 1", Pivo = "Kočka Světlá 12°, Kočka Tmavá 12°, Pilsner Urquell" },
+                new Hospoda { Id = 11, Nazev = "U Medvídků", Ctvrt = "Praha 1", Pivo = "Budvar 12°, X-Beer 33 (nejsilnější pivo), Medvídkovské polotmavé" },
+                new Hospoda { Id = 12, Nazev = "Jelínkova Plzeňská pivnice", Ctvrt = "Praha 1", Pivo = "Pilsner Urquell z tanku, Radegast Birell" },
+                new Hospoda { Id = 13, Nazev = "U Rudolfina", Ctvrt = "Praha 1", Pivo = "Pilsner Urquell hladinka, Kozel Černý" },
+                new Hospoda { Id = 14, Nazev = "Pivnice Štupartská", Ctvrt = "Praha 1", Pivo = "Gambrinus 11° Nepaster, Pilsner Urquell" },
+                new Hospoda { Id = 15, Nazev = "The Pub Praha 1", Ctvrt = "Praha 1", Pivo = "Pilsner Urquell (samovýčep na stolech)" },
+                new Hospoda { Id = 16, Nazev = "Lokal U Bílé kuželky", Ctvrt = "Praha 1", Pivo = "Pilsner Urquell z tanku, Kozel Tmavý" },
+                new Hospoda { Id = 17, Nazev = "Bredovský Dvůr", Ctvrt = "Praha 1", Pivo = "Pilsner Urquell tankový, Kozel Řezaný" },
+                new Hospoda { Id = 18, Nazev = "Novoměstský pivovar", Ctvrt = "Praha 1", Pivo = "Novoměstský ležák 11° Světlý, Novoměstský kvasnicový" },
+                new Hospoda { Id = 19, Nazev = "Restaurace Mincovna", Ctvrt = "Praha 1", Pivo = "Pilsner Urquell z tanku, Volba sládků" },
+                new Hospoda { Id = 20, Nazev = "Pivnice U Poutníka", Ctvrt = "Praha 1", Pivo = "Poutník 12° Hořký, Poutník 14° Speciál" },
+
+                // === PROSEK - 12 HOSPOD ===
+                new Hospoda { Id = 21, Nazev = "Pivovar Beznoska", Ctvrt = "Prosek", Pivo = "Beznoska 11° Světlá, Klíčovská 12° Tmavá, Koloušek 13° IPA" },
+                new Hospoda { Id = 22, Nazev = "Hospůdka U Knoflíku", Ctvrt = "Prosek", Pivo = "Pilsner Urquell, Kozel 11° Tmavý, Volba sládků" },
+                new Hospoda { Id = 23, Nazev = "Restaurace U Branců", Ctvrt = "Prosek", Pivo = "Staropramen 11°, Nealko Stella Artois" },
+                new Hospoda { Id = 24, Nazev = "Pivnice Na Vyhlídce", Ctvrt = "Prosek", Pivo = "Svijanský Máz 11°, Bernard 12° Nepasterovaný" },
+                new Hospoda { Id = 25, Nazev = "Bar & Pivnice Pod Křížkem", Ctvrt = "Prosek", Pivo = "Gambrinus 11° Nepaster, Kozel 10°" },
+                new Hospoda { Id = 26, Nazev = "Pivnice U Šandů", Ctvrt = "Prosek", Pivo = "Radegast Rázná 10, Radegast Ryze Hořká 12" },
+                new Hospoda { Id = 27, Nazev = "Letecká hospoda Prosek", Ctvrt = "Prosek", Pivo = "Staropramen 10°, Braník Jedenáctka" },
+                new Hospoda { Id = 28, Nazev = "Plzeňka Prosek", Ctvrt = "Prosek", Pivo = "Pilsner Urquell z tanku, Kozel Černý" },
+                new Hospoda { Id = 29, Nazev = "Hospoda Na Zdráhalce", Ctvrt = "Prosek", Pivo = "Svijany 11°, Kácov Hubertus" },
+                new Hospoda { Id = 30, Nazev = "Pivnice U Pecků", Ctvrt = "Prosek", Pivo = "Gambrinus Excelent 11°, Radegast 12°" },
+                new Hospoda { Id = 141, Nazev = "Prosecká Bašta", Ctvrt = "Prosek", Pivo = "Kozel 11°, Pilsner Urquell" },
+                new Hospoda { Id = 142, Nazev = "Klub Underground Prosek", Ctvrt = "Prosek", Pivo = "Chotěboř 12°, Únětice 10°" },
+
+                // === LÁDVÍ & KOBYLISY - 11 HOSPOD ===
+                new Hospoda { Id = 31, Nazev = "Pivovar Cobolis", Ctvrt = "Ládví", Pivo = "Cobolis 11° Praotec, Cobolis 12° Nevěsta, IPA 14° El Niňo, Tmavá 13°" },
+                new Hospoda { Id = 32, Nazev = "Kozlovna Ládví", Ctvrt = "Ládví", Pivo = "Kozel 11° z tanku, Kozel Černý, Pilsner Urquell" },
+                new Hospoda { Id = 33, Nazev = "Hospoda Pod Ládvím", Ctvrt = "Ládví", Pivo = "Gambrinus 11°, Pilsner Urquell, Birell" },
+                new Hospoda { Id = 34, Nazev = "Pivnice U Vlka", Ctvrt = "Kobylisy", Pivo = "Svijany 11°, Rohozec Skalák 11°, Primátor Pšeničné" },
+                new Hospoda { Id = 35, Nazev = "Restaurace Na Pěšinách", Ctvrt = "Kobylisy", Pivo = "Pilsner Urquell, Kozel 11°, Volba sládků" },
+                new Hospoda { Id = 36, Nazev = "U Korbelu", Ctvrt = "Ládví", Pivo = "Staropramen Smíchov, Staropramen 12°, Ostravar Mustang" },
+                new Hospoda { Id = 37, Nazev = "Pivnice U Hrušky", Ctvrt = "Kobylisy", Pivo = "Kácov Hubertus 11°, Únětice 12°" },
+                new Hospoda { Id = 38, Nazev = "Hospoda Březiněveská", Ctvrt = "Kobylisy", Pivo = "Bernard 11° Světlý, Bernard Jantar" },
+                new Hospoda { Id = 39, Nazev = "Krakora Bar", Ctvrt = "Kobylisy", Pivo = "Chotěboř 11°, Polička Otakar 11°" },
+                new Hospoda { Id = 40, Nazev = "Sídlištní Oáza", Ctvrt = "Ládví", Pivo = "Staropramen 10°, Staropramen Nealko" },
+                new Hospoda { Id = 143, Nazev = "U Vzdáleného sudu", Ctvrt = "Ládví", Pivo = "Gambrinus 12°, Kozel Tmavý" },
+
+                // === STŘÍŽKOV - 10 HOSPOD ===
+                new Hospoda { Id = 111, Nazev = "Pivnice Střížkov", Ctvrt = "Střížkov", Pivo = "Pilsner Urquell, Radegast 12°" },
+                new Hospoda { Id = 112, Nazev = "Hospoda Pod Stříškou", Ctvrt = "Střížkov", Pivo = "Svijany 11°, Kozel 11°" },
+                new Hospoda { Id = 113, Nazev = "Restaurace U Medvěda", Ctvrt = "Střížkov", Pivo = "Staropramen 11°, Braník" },
+                new Hospoda { Id = 114, Nazev = "Pivnice Bella", Ctvrt = "Střížkov", Pivo = "Bernard 12° Kvasnicový, Bernard Černý" },
+                new Hospoda { Id = 115, Nazev = "Sídlištní Krčma", Ctvrt = "Střížkov", Pivo = "Gambrinus 10°, Radegast 10" },
+                new Hospoda { Id = 116, Nazev = "Sport Bar Střížkov", Ctvrt = "Střížkov", Pivo = "Kozel 11°, Pilsner Urquell" },
+                new Hospoda { Id = 117, Nazev = "Bar Albert", Ctvrt = "Střížkov", Pivo = "Staropramen 12°, Nealko Birell" },
+                new Hospoda { Id = 118, Nazev = "Pivnice U Káji", Ctvrt = "Střížkov", Pivo = "Poutník 12°, Chotěboř 11°" },
+                new Hospoda { Id = 119, Nazev = "Hospůdka Na Růžku", Ctvrt = "Střížkov", Pivo = "Svijanský Máz, Rohozec" },
+                new Hospoda { Id = 120, Nazev = "U Křížku Střížkov", Ctvrt = "Střížkov", Pivo = "Kácov 11°, Únětice 12°" },
+
+                // === LETŇANY - 10 HOSPOD ===
+                new Hospoda { Id = 41, Nazev = "Pivovarský dvůr Letňany", Ctvrt = "Letňany", Pivo = "Letňanský ležák 11°, Tmavý speciál 13°, Medové pivo" },
+                new Hospoda { Id = 42, Nazev = "Restaurace Avion", Ctvrt = "Letňany", Pivo = "Pilsner Urquell, Kozel 11° Světlý, Kozel Černý" },
+                new Hospoda { Id = 43, Nazev = "Steak & Beer Šnek", Ctvrt = "Letňany", Pivo = "Bernard 11° Světlý, Bernard Černá lavina, Bernard IPA" },
+                new Hospoda { Id = 44, Nazev = "Pivnice Na Verandě", Ctvrt = "Letňany", Pivo = "Gambrinus Excelent 11°, Radegast 12°" },
+                new Hospoda { Id = 45, Nazev = "Hospoda U Letců", Ctvrt = "Letňany", Pivo = "Staropramen 11°, Braník 11°" },
+                new Hospoda { Id = 46, Nazev = "Pivnice Kobra", Ctvrt = "Letňany", Pivo = "Svijanský Máz 11°, Kozel 10°" },
+                new Hospoda { Id = 47, Nazev = "Blue Bar & Beer", Ctvrt = "Letňany", Pivo = "Radegast 10, Pilsner Urquell" },
+                new Hospoda { Id = 48, Nazev = "Kavárna a hospůdka Avion", Ctvrt = "Letňany", Pivo = "Kozel 11° Tankový, Birell Pomelo" },
+                new Hospoda { Id = 49, Nazev = "Restaurace Broadview", Ctvrt = "Letňany", Pivo = "Pilsner Urquell, Volba sládků" },
+                new Hospoda { Id = 50, Nazev = "Ztracené pivo", Ctvrt = "Letňany", Pivo = "Staropramen 12°, Černá Barbora" },
+
+                // === ŽIŽKOV - 10 HOSPOD ===
+                new Hospoda { Id = 51, Nazev = "U Vystřelenýho oka", Ctvrt = "Žižkov", Pivo = "Pilsner Urquell, Kozel 11°, Kozel Černý" },
+                new Hospoda { Id = 52, Nazev = "Pivnice U Járy", Ctvrt = "Žižkov", Pivo = "Svijanský Máz 11°, Rohozec 12°, Bakalář Za studena chmelený" },
+                new Hospoda { Id = 53, Nazev = "Pivovar Victor", Ctvrt = "Žižkov", Pivo = "Victor Světlý ležák, Victor Tmavý ležák, Victor Speciál" },
+                new Hospoda { Id = 54, Nazev = "U Sadu", Ctvrt = "Žižkov", Pivo = "Sádek 11° (vlastní), Pilsner Urquell, Primátor Weizen, Guinness" },
+                new Hospoda { Id = 55, Nazev = "Hospoda Nad Viktorkou", Ctvrt = "Žižkov", Pivo = "Gambrinus 11° Nepaster, Radegast 12°" },
+                new Hospoda { Id = 56, Nazev = "U Pižlu", Ctvrt = "Žižkov", Pivo = "Únětice 10°, Únětice 12°, Kácov 11°" },
+                new Hospoda { Id = 57, Nazev = "Pivnice u Slovanské Lípy", Ctvrt = "Žižkov", Pivo = "Kout na Šumavě 12°, Tambor 11°, Bakalář" },
+                new Hospoda { Id = 58, Nazev = "Hospoda Malkovich", Ctvrt = "Žižkov", Pivo = "Zichovec IPA, Matuška 12°, Clock APA" },
+                new Hospoda { Id = 59, Nazev = "Planeta Žižkov", Ctvrt = "Žižkov", Pivo = "Staropramen 11°, Stella Artois" },
+                new Hospoda { Id = 60, Nazev = "U Bohouše", Ctvrt = "Žižkov", Pivo = "Pilsner Urquell, Kozel Tmavý" },
+
+                // === VINOHRADY - 10 HOSPOD ===
+                new Hospoda { Id = 61, Nazev = "Vinohradský pivovar", Ctvrt = "Vinohrady", Pivo = "Vinohradská 11°, Vinohradská 12°, Jantarová 13°, Liberator IPA" },
+                new Hospoda { Id = 62, Nazev = "BeerGeek Bar", Ctvrt = "Vinohrady", Pivo = "Zichovec Sour, Raven IPA, Falkon Stout, Matuška California" },
+                new Hospoda { Id = 63, Nazev = "Hostinec U Vodoucha", Ctvrt = "Vinohrady", Pivo = "Poutník 12°, Koutská 10°, Únětice 12, Chotěboř 11" },
+                new Hospoda { Id = 64, Nazev = "Dno Pytle", Ctvrt = "Vinohrady", Pivo = "Bavorská piva z malých pivovarů, Francké samosády" },
+                new Hospoda { Id = 65, Nazev = "Hrom do police", Ctvrt = "Vinohrady", Pivo = "Polotmavý Polička Otakar 11°, Eliška 13°" },
+                new Hospoda { Id = 66, Nazev = "Lokal Korunní", Ctvrt = "Vinohrady", Pivo = "Pilsner Urquell tankový, Kozel Černý" },
+                new Hospoda { Id = 67, Nazev = "Pivnice U Kozla", Ctvrt = "Vinohrady", Pivo = "Kozel 11° z tanku, Kozel Mistrův Nepasterovaný" },
+                new Hospoda { Id = 68, Nazev = "Restaurace Hajnovka", Ctvrt = "Vinohrady", Pivo = "Pilsner Urquell, Volba sládků" },
+                new Hospoda { Id = 69, Nazev = "Pivni Mozaika", Ctvrt = "Vinohrady", Pivo = "Clock APA, Permon Stout, Raven Sour" },
+                new Hospoda { Id = 70, Nazev = "U Bulínů", Ctvrt = "Vinohrady", Pivo = "Pilsner Urquell, Kozel 11° Světlý" },
+
+                // === KARLÍN - 10 HOSPOD ===
+                new Hospoda { Id = 71, Nazev = "Dva kohouti", Ctvrt = "Karlín", Pivo = "Místní ležák 12° z tanku, Hostující pivovary" },
+                new Hospoda { Id = 72, Nazev = "Lokál Hamburk", Ctvrt = "Karlín", Pivo = "Pilsner Urquell z tanku, Kozel Černý" },
+                new Hospoda { Id = 73, Nazev = "Pivovarský klub Benedict", Ctvrt = "Karlín", Pivo = "Břevnovský Benedikt 12°, Primátor Weizen, Kácov 11°, Bernard" },
+                new Hospoda { Id = 74, Nazev = "Pivo Karlín", Ctvrt = "Karlín", Pivo = "Karlínský ležák 11°, Karlínská IPA 14°" },
+                new Hospoda { Id = 75, Nazev = "Bad Flash Bar Karlín", Ctvrt = "Karlín", Pivo = "Bad Flash Torpido IPA, Hostující minipivovary" },
+                new Hospoda { Id = 76, Nazev = "Diezenhofer pivnice", Ctvrt = "Karlín", Pivo = "Budweiser Budvar, Budvar Cvikr" },
+                new Hospoda { Id = 77, Nazev = "Karlínská pivnice", Ctvrt = "Karlín", Pivo = "Staropramen 11°, Smíchov Tank" },
+                new Hospoda { Id = 78, Nazev = "The Pub Karlín", Ctvrt = "Karlín", Pivo = "Pilsner Urquell (vlastní pípa na stole)" },
+                new Hospoda { Id = 79, Nazev = "U Saní", Ctvrt = "Karlín", Pivo = "Svijanský Máz 11°, Rohozec 12°" },
+                new Hospoda { Id = 80, Nazev = "Peter's Pub", Ctvrt = "Karlín", Pivo = "Pilsner Urquell, Ostravar Mustang" },
+
+                // === DEJVICE - 10 HOSPOD ===
+                new Hospoda { Id = 81, Nazev = "Automat Matuška", Ctvrt = "Dejvice", Pivo = "Matuška Desítka, Matuška Dvanáctka, California IPA, Apollo Galaxy" },
+                new Hospoda { Id = 82, Nazev = "Kulaťák", Ctvrt = "Dejvice", Pivo = "Pilsner Urquell z tanku, Kozel Tmavý, Volba sládků" },
+                new Hospoda { Id = 83, Nazev = "Budvarka Dejvice", Ctvrt = "Dejvice", Pivo = "Budweiser Budvar Original, Budvar Cvikr, Budvar Tmavý" },
+                new Hospoda { Id = 84, Nazev = "Na Slamníku", Ctvrt = "Dejvice", Pivo = "Únětice 10° nefiltrovaná, Únětice 12° filtrovaná" },
+                new Hospoda { Id = 85, Nazev = "Pivovar Bubeneč", Ctvrt = "Dejvice", Pivo = "Bubenečská 11° Světlá, Bubenečská 12° APA, Šesták 10°" },
+                new Hospoda { Id = 86, Nazev = "U Pětníka", Ctvrt = "Dejvice", Pivo = "Únětice 12°, Pilsner Urquell, Radegast 10°" },
+                new Hospoda { Id = 87, Nazev = "U Veverky", Ctvrt = "Dejvice", Pivo = "Pilsner Urquell perfekt hladinka, Kozel Černý" },
+                new Hospoda { Id = 88, Nazev = "Dejvická Sokolovna", Ctvrt = "Dejvice", Pivo = "Gambrinus 11° Nepaster, Pilsner Urquell" },
+                new Hospoda { Id = 89, Nazev = "Krkonošská hospoda", Ctvrt = "Dejvice", Pivo = "Hendrych 11°, Trautenberk 12°, Krakonoš 12°" },
+                new Hospoda { Id = 90, Nazev = "Base Camp Dejvice", Ctvrt = "Dejvice", Pivo = "Zichovec, Falkon, Clock (Pivotéka & bar)" },
+
+                // === SMÍCHOV - 10 HOSPOD ===
+                new Hospoda { Id = 91, Nazev = "Na Verandách (Staropramen)", Ctvrt = "Smíchov", Pivo = "Staropramen Smíchov z tanku, Staropramen 12°, Extra Chmelená 12°, Černá Barbora" },
+                new Hospoda { Id = 92, Nazev = "Andělský pivovar", Ctvrt = "Smíchov", Pivo = "Andělský ležák 11°, Andělská 12° Nefiltrovaná, Speciál APA" },
+                new Hospoda { Id = 93, Nazev = "Kozlovna Lidická", Ctvrt = "Smíchov", Pivo = "Kozel 11° Tankový, Kozel Mistrův ležák, Kozel Černý" },
+                new Hospoda { Id = 94, Nazev = "Beer Time Anděl", Ctvrt = "Smíchov", Pivo = "Zichovec Magor, Clock No.1, Albrecht IPA, Únětice 12°" },
+                new Hospoda { Id = 95, Nazev = "Smíchovský Radegast Pub", Ctvrt = "Smíchov", Pivo = "Radegast Rázná 10, Radegast Ryze Hořká 12, Pilsner Urquell" },
+                new Hospoda { Id = 96, Nazev = "Hany Bany Smíchov", Ctvrt = "Smíchov", Pivo = "Staropramen 11°, Braník 11°" },
+                new Hospoda { Id = 97, Nazev = "Pivnice Jamajka", Ctvrt = "Smíchov", Pivo = "Svijanský Máz 11°, Kozel 10°" },
+                new Hospoda { Id = 98, Nazev = "U Perónu", Ctvrt = "Smíchov", Pivo = "Pilsner Urquell, Kozel Černý" },
+                new Hospoda { Id = 99, Nazev = "Restaurace Tradice", Ctvrt = "Smíchov", Pivo = "Pilsner Urquell z tanku, Volba sládků" },
+                new Hospoda { Id = 100, Nazev = "Pivnice Trilobit", Ctvrt = "Smíchov", Pivo = "Trilobit 11° Světlý, Trilobit Černá liška 13°" },
+
+                // === NUSLE & PANKRÁC - 10 HOSPOD ===
+                new Hospoda { Id = 101, Nazev = "Zlý časy", Ctvrt = "Nusle", Pivo = "Kout na Šumavě, Matuška, Clock, Permon, Albrecht (24 píp z minipivovarů)" },
+                new Hospoda { Id = 102, Nazev = "Pivovar Bašta (U Bansethů)", Ctvrt = "Nusle", Pivo = "Bašta 12° Světlá nefiltrovaná, Bašta Polotmavá 12°, Medový speciál" },
+                new Hospoda { Id = 103, Nazev = "U pěniček", Ctvrt = "Nusle", Pivo = "Bernard 11°, Bernard 12° Kvasnicový, Bernard Jantar" },
+                new Hospoda { Id = 104, Nazev = "Kozlovna Tylor", Ctvrt = "Nusle", Pivo = "Kozel 11° Tankový, Kozel Černý, Pilsner Urquell" },
+                new Hospoda { Id = 105, Nazev = "Nuselská pivnice", Ctvrt = "Nusle", Pivo = "Staropramen 11°, Braník 11°" },
+                new Hospoda { Id = 106, Nazev = "Sokolovna Nusle", Ctvrt = "Nusle", Pivo = "Gambrinus 11° Nepaster, Pilsner Urquell" },
+                new Hospoda { Id = 107, Nazev = "Na Paloučku", Ctvrt = "Nusle", Pivo = "Pilsner Urquell z tanku, Kozel Tmavý" },
+                new Hospoda { Id = 108, Nazev = "Pivnice Lidová", Ctvrt = "Nusle", Pivo = "Svijanský Máz 11°, Rohozec 12°" },
+                new Hospoda { Id = 109, Nazev = "Hospůdka Omladinářů", Ctvrt = "Nusle", Pivo = "Kácov Hubertus 11°, Bernard 11°" },
+                new Hospoda { Id = 110, Nazev = "Pivovar Spojovna", Ctvrt = "Nusle", Pivo = "Spojovací 11° Ležák, Šubrt 12° Tmavý, IPA 14° Študák" },
+
+                // === HOLEŠOVICE - 10 HOSPOD ===
+                new Hospoda { Id = 121, Nazev = "Pivovar Marina", Ctvrt = "Holešovice", Pivo = "Holešovický ležák 12°, Přístavní desítka, Marina IPA" },
+                new Hospoda { Id = 122, Nazev = "Pivovar Lajka", Ctvrt = "Holešovice", Pivo = "Lajka 11° Světlá, Sputnik 13° Dark, Craft speciály" },
+                new Hospoda { Id = 123, Nazev = "Kozlovna Holešovice", Ctvrt = "Holešovice", Pivo = "Kozel 11° z tanku, Kozel Černý, Pilsner Urquell" },
+                new Hospoda { Id = 124, Nazev = "Lokál Nad Stromovkou", Ctvrt = "Holešovice", Pivo = "Pilsner Urquell z tanku, Kozel Tmavý" },
+                new Hospoda { Id = 125, Nazev = "Sedmý schod", Ctvrt = "Holešovice", Pivo = "Únětice 10°, Únětice 12°, Bernard Černý" },
+                new Hospoda { Id = 126, Nazev = "Holešovická Pivnice", Ctvrt = "Holešovice", Pivo = "Svijany 11°, Gambrinus 11°" },
+                new Hospoda { Id = 127, Nazev = "U Průhonu", Ctvrt = "Holešovice", Pivo = "Kácov Hubertus 11°, Staropramen 12°" },
+                new Hospoda { Id = 128, Nazev = "U Topolů", Ctvrt = "Holešovice", Pivo = "Radegast 12°, Pilsner Urquell" },
+                new Hospoda { Id = 129, Nazev = "Pivotéka BaseCamp", Ctvrt = "Holešovice", Pivo = "Zichovec, Raven, Clock, Matuška" },
+                new Hospoda { Id = 130, Nazev = "Hospoda Pod Výtopnou", Ctvrt = "Holešovice", Pivo = "Bernard 11°, Kozel Tmavý" },
+
+                // === BŘEVNOV - 10 HOSPOD ===
+                new Hospoda { Id = 131, Nazev = "Břevnovský klášterní pivovar", Ctvrt = "Břevnov", Pivo = "Benedikt 11° Světlý, Benedikt 12° Tmavý, Klášterní IPA" },
+                new Hospoda { Id = 132, Nazev = "U Černého lva", Ctvrt = "Břevnov", Pivo = "Pilsner Urquell, Kozel 11°" },
+                new Hospoda { Id = 133, Nazev = "Hospoda Konec světa", Ctvrt = "Břevnov", Pivo = "Svijanský Máz, Bernard 11°" },
+                new Hospoda { Id = 134, Nazev = "Pivnice Břevnov", Ctvrt = "Břevnov", Pivo = "Staropramen 11°, Braník Jedenáctka" },
+                new Hospoda { Id = 135, Nazev = "U Prezidentů", Ctvrt = "Břevnov", Pivo = "Gambrinus 11° Nepaster, Pilsner Urquell" },
+                new Hospoda { Id = 136, Nazev = "Na Závisti", Ctvrt = "Břevnov", Pivo = "Kozel Tmavý, Radegast 12°" },
+                new Hospoda { Id = 137, Nazev = "Klášterní Šenk", Ctvrt = "Břevnov", Pivo = "Benedikt Světlý ležák, Volba sládků" },
+                new Hospoda { Id = 138, Nazev = "Pivnice Dráha", Ctvrt = "Břevnov", Pivo = "Kácov 11°, Únětice 12°" },
+                new Hospoda { Id = 139, Nazev = "U Kaštanu", Ctvrt = "Břevnov", Pivo = "Pilsner Urquell, Radegast 10" },
+                new Hospoda { Id = 140, Nazev = "Pod Marjánkou", Ctvrt = "Břevnov", Pivo = "Budvar 12°, Chotěboř 11°" }
+            };
+        }
+
+        private void InicializovatUzivatelskeRozhrani()
+        {
+            Panel pnlTop = new Panel { Dock = DockStyle.Top, Height = 80, BackColor = Color.FromArgb(34, 34, 34) };
+            
+            // Vyhledávání
+            Label lblHledat = new Label { Text = "Hledat čtvrť / pivo:", Left = 15, Top = 28, ForeColor = Color.White, Width = 150, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            txtHledat = new TextBox { Left = 165, Top = 25, Width = 250, Font = new Font("Segoe UI", 10) };
+            txtHledat.TextChanged += (s, e) => FiltrovatData();
+
+            // Bodování
+            Label lblRat = new Label { Text = "Ohodnotit (1-10):", Left = 440, Top = 28, ForeColor = Color.White, Width = 110 };
+            numRating = new NumericUpDown { Left = 550, Top = 25, Minimum = 1, Maximum = 10, Value = 10, Width = 50, Font = new Font("Segoe UI", 10) };
+            Button btnUlozit = new Button { Text = "Uložit body", Left = 610, Top = 23, Width = 110, Height = 28, BackColor = Color.LightGray };
+            btnUlozit.Click += UlozitBodovani_Click;
+
+            // Náhodný tip
+            Button btnNahoda = new Button { Text = "Kam dnes jít? (Náhodný tip)", Left = 740, Top = 20, Width = 220, Height = 34, BackColor = Color.DarkOrange, ForeColor = Color.White, Font = new Font("Segoe UI", 10, FontStyle.Bold) };
+            btnNahoda.Click += (s, e) => {
+                if (databaze.Count > 0)
+                {
+                    var nahodnaHospoda = databaze[new Random().Next(databaze.Count)];
+                    string ratText = ratingy.ContainsKey(nahodnaHospoda.Id) ? Math.Round(ratingy[nahodnaHospoda.Id].Average(), 1).ToString() + "/10" : "Zatím nehodnoceno";
+
+                    MessageBox.Show(
+                        $"Dnes vyzkoušejte podnik:\n\n" +
+                        $"📌 Název: {nahodnaHospoda.Nazev}\n" +
+                        $"🗺️ Čtvrť: {nahodnaHospoda.Ctvrt}\n" +
+                        $"🍺 Na čepu: {nahodnaHospoda.Pivo}\n" +
+                        $"⭐ Hodnocení: {ratText}", 
+                        "Náhodný pivní tip!"
+                    );
+                }
+            };
+
+            pnlTop.Controls.AddRange(new Control[] { lblHledat, txtHledat, lblRat, numRating, btnUlozit, btnNahoda });
+
+            // Tabulka
+            grid = new DataGridView { 
+                Dock = DockStyle.Fill, 
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect, 
+                ReadOnly = true,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                BackgroundColor = Color.White,
+                RowHeadersVisible = false,
+                AllowUserToResizeRows = false
+            };
+
+            lblStatus = new Label { Dock = DockStyle.Bottom, Height = 25, BackColor = Color.Gainsboro, Text = " Načteno.", TextAlign = ContentAlignment.MiddleLeft };
+
+            this.Controls.Add(grid);
+            this.Controls.Add(pnlTop);
+            this.Controls.Add(lblStatus);
+
+            FiltrovatData();
+        }
+
+        // Pomocná metoda pro spolehlivé odstranění diakritiky při vyhledávání
+        private string OdstranDiakritiku(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return "";
+            string normalizedString = text.Normalize(NormalizationForm.FormD);
+            StringBuilder stringBuilder = new StringBuilder();
+
+            foreach (char c in normalizedString)
+            {
+                UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+            return stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLower();
+        }
+
+        private void FiltrovatData()
+        {
+            // Vyhledávací fráze očištěná o diakritiku a mezery
+            string filtr = OdstranDiakritiku(txtHledat.Text);
+            
+            var vysledek = databaze
+                .Where(h => OdstranDiakritiku(h.Nazev).Contains(filtr) || 
+                            OdstranDiakritiku(h.Ctvrt).Contains(filtr) || 
+                            OdstranDiakritiku(h.Pivo).Contains(filtr))
+                .Select(h => new UIHospoda {
+                    Id = h.Id,
+                    Název_Podniku = h.Nazev,
+                    Čtvrť = h.Ctvrt,
+                    Piva_Na_Čepu = h.Pivo,
+                    Hodnocení = ratingy.ContainsKey(h.Id) ? Math.Round(ratingy[h.Id].Average(), 1).ToString() + " / 10" : "Zatím nehodnoceno",
+                    Hlasovalo = ratingy.ContainsKey(h.Id) ? ratingy[h.Id].Count : 0,
+                    RawPrumer = ratingy.ContainsKey(h.Id) ? ratingy[h.Id].Average() : 0.0
+                })
+                .OrderByDescending(h => h.RawPrumer)
+                .ThenBy(h => h.Název_Podniku)
+                .ToList();
+
+            // Bezpečné přiřazení dat přes typovanou strukturu
+            grid.DataSource = vysledek;
+
+            // Skrytí pomocných sloupců (až když data v tabulce reálně existují)
+            if (grid.Columns["Id"] != null) grid.Columns["Id"].Visible = false;
+            if (grid.Columns["RawPrumer"] != null) grid.Columns["RawPrumer"].Visible = false;
+
+            lblStatus.Text = $" Zobrazeno {vysledek.Count} hospod. Zkus napsat např.: zizkov, prosek, praha 1, ladví, brebnov...";
+        }
+
+        private void UlozitBodovani_Click(object sender, EventArgs e)
+        {
+            if (grid.SelectedRows.Count > 0)
+            {
+                // Bezpečné vytáhnutí ID přes silně typovaný objekt UIHospoda
+                var vybranyRadek = (UIHospoda)grid.SelectedRows[0].DataBoundItem;
+                int id = vybranyRadek.Id;
+                int novaZnamka = (int)numRating.Value;
+
+                if (!ratingy.ContainsKey(id)) ratingy[id] = new List<int>();
+                ratingy[id].Add(novaZnamka);
+
+                try
+                {
+                    File.AppendAllText(ratingFile, $"{id};{novaZnamka}{Environment.NewLine}");
+                    FiltrovatData();
+                    MessageBox.Show($"Hodnocení {novaZnamka}/10 uloženo!", "Hotovo");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Chyba při ukládání: " + ex.Message);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Nejprve kliknutím v tabulce vyberte hospodu.");
+            }
+        }
+
+        private void NacistUlozeneRatingy()
+        {
+            if (File.Exists(ratingFile))
+            {
+                var radky = File.ReadAllLines(ratingFile);
+                foreach (var radek in radky)
+                {
+                    var casti = radek.Split(';');
+                    if (casti.Length == 2 && int.TryParse(casti[0], out int id) && int.TryParse(casti[1], out int val))
+                    {
+                        if (!ratingy.ContainsKey(id)) ratingy[id] = new List<int>();
+                        ratingy[id].Add(val);
+                    }
+                }
+            }
+        }
+    }
+
+    // Původní datová třída
+    public class Hospoda
+    {
+        public int Id { get; set; }
+        public string Nazev { get; set; }
+        public string Ctvrt { get; set; }
+        public string Pivo { get; set; }
+    }
+
+    // Pomocná třída pro správné zobrazení a řazení v DataGridView
+    public class UIHospoda
+    {
+        public int Id { get; set; }
+        public string Název_Podniku { get; set; }
+        public string Čtvrť { get; set; }
+        public string Piva_Na_Čepu { get; set; }
+        public string Hodnocení { get; set; }
+        public int Hlasovalo { get; set; }
+        public double RawPrumer { get; set; }
+    }
+}
